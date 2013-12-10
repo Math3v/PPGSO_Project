@@ -77,9 +77,12 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyEventReceiver.cpp" />
+    <ClCompile Include="MyLightManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="LightDistanceElement.h" />
     <ClInclude Include="MyEventReceiver.h" />
+    <ClInclude Include="CMyLightManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
