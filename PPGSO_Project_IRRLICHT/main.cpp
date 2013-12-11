@@ -1,5 +1,6 @@
 #include <irrlicht.h>
 #include <iostream>
+#include <math.h>
 #include "driverChoice.h"
 #include "MyEventReceiver.h"
 #include "CMyLightManager.h"
@@ -34,9 +35,10 @@ int main()
 
 	IVideoDriver* driver = device->getVideoDriver();
     ISceneManager* smgr = device->getSceneManager();
-    IGUIEnvironment* guienv = device->getGUIEnvironment();
 
 	const float sunSize = (float) 10.0;
+	const float AU = (float) sunSize + (float) 10.0;
+	const f32 year = (f32) 0.00001;
 
 	IMeshSceneNode* sun = smgr->addSphereSceneNode(sunSize, 50, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
 	if (sun)
@@ -45,33 +47,52 @@ int main()
         sun->setMaterialFlag(EMF_LIGHTING, false);
         sun->setMaterialTexture( 0, driver->getTexture("../textures/sun_texture_big.BMP") );
 		smgr->addLightSceneNode(sun, vector3df(0, 0, 0), SColorf(1.0f, 1.0f, 1.0f), sunSize, -1);
+		ISceneNodeAnimator* orbit = smgr->createRotationAnimator(vector3df(0.f, 0.1f, 0.f));
+		sun->addAnimator(orbit);
     }
 
-	IMeshSceneNode* jupiter = smgr->addSphereSceneNode(sunSize, 20, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
-	if (jupiter)
+	IMeshSceneNode* mercury = smgr->addSphereSceneNode(sunSize, 5, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
+	if (mercury)
     {
-		const float jupiterSize = sunSize / (10.0f * sunSize);
-		const float jAU = 5.4f;
-        jupiter->setMaterialFlag(EMF_LIGHTING, true);
-		jupiter->setParent(sun);
-		jupiter->setScale(vector3df(jupiterSize, jupiterSize, jupiterSize));
-		jupiter->setPosition(vector3df(2 * jAU + sunSize, 0, 0));
-        jupiter->setMaterialTexture( 0, driver->getTexture("../textures/Jupiter.bmp") );
+		//const float mercurySize = sunSize / (277.0f * sunSize);
+		const float mercurySize = sunSize / (11.0f * sunSize);
+        mercury->setMaterialFlag(EMF_LIGHTING, true);
+		mercury->setParent(sun);
+		mercury->setScale(vector3df(mercurySize, mercurySize, mercurySize));
+		//mercury->setPosition(vector3df(0.38f * AU, 0, 0));
+		mercury->setPosition(vector3df(0.78f * AU, 0, 0));
+        mercury->setMaterialTexture( 0, driver->getTexture("../textures/sun_texture_big.bmp") );
+		ISceneNodeAnimator* orbit = smgr->createFlyCircleAnimator(vector3df(0.f, 1, 0.f),0.38f * AU, year * (f32) 2.1f, vector3df(0.f, 1, 0.f), 100.0f, 0.0f);
+		mercury->addAnimator(orbit);
+    }
+
+	IMeshSceneNode* venus = smgr->addSphereSceneNode(sunSize, 5, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
+	if (venus)
+    {
+		const float venusSize = sunSize / (113.0f * sunSize);
+        venus->setMaterialFlag(EMF_LIGHTING, true);
+		venus->setParent(sun);
+		venus->setScale(vector3df(venusSize, venusSize, venusSize));
+		venus->setPosition(vector3df(0.72f * AU, 0, 0));
+        venus->setMaterialTexture( 0, driver->getTexture("../textures/venus.bmp") );
+		ISceneNodeAnimator* orbit = smgr->createFlyCircleAnimator(vector3df(0.f, 1, 0.f),0.72f * AU, year * (f32) 1.5f, vector3df(0.f, 1, 0.f), 100.0f, 0.0f);
+		venus->addAnimator(orbit);
     }
 
 	IMeshSceneNode* earth = smgr->addSphereSceneNode(sunSize, 10, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
 	if (earth)
     {
 		const float earthSize = sunSize / (100.0f * sunSize);
-		const float eAU = 1.0f;
         earth->setMaterialFlag(EMF_LIGHTING, true);
 		earth->setParent(sun);
 		earth->setScale(vector3df(earthSize, earthSize, earthSize));
-		earth->setPosition(vector3df(2 * eAU + sunSize, 0, 0));
+		earth->setPosition(vector3df(AU, 0, 0));
         earth->setMaterialTexture( 0, driver->getTexture("../textures/earth.bmp") );
-    }
+		ISceneNodeAnimator* orbit = smgr->createFlyCircleAnimator(vector3df(0.f, 1, 0.f), AU, year, vector3df(0.f, 1, 0.f), 100.0f, 0.0f);
+		earth->addAnimator(orbit);
+	}
 
-	IMeshSceneNode* moon = smgr->addSphereSceneNode(sunSize, 10, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
+	IMeshSceneNode* moon = smgr->addSphereSceneNode(sunSize, 5, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
 	if (moon)
     {
 		const float moonSize = sunSize * 75.0f / (416.0f * sunSize); //TODO
@@ -81,23 +102,118 @@ int main()
 		moon->setScale(vector3df(moonSize, moonSize, moonSize));
 		moon->setPosition(vector3df(16 * mAU + sunSize, 0, 0));
         moon->setMaterialTexture( 0, driver->getTexture("../textures/moonTexture.BMP") );
+		ISceneNodeAnimator* orbit = smgr->createFlyCircleAnimator(vector3df(0.f, 1, 0.f), 16 * mAU + sunSize, year * (f32) 365.0f, vector3df(0.f, 1, 0.f), 100.0f, 0.0f);
+		moon->addAnimator(orbit);
     }
 
-	IMeshSceneNode* pluto = smgr->addSphereSceneNode(sunSize, 5, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
-	if (pluto)
+	IMeshSceneNode* mars = smgr->addSphereSceneNode(sunSize, 5, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
+	if (mars)
     {
-		const float plutoSize = sunSize / (625.0f * sunSize);
-		const float pAU = 40.0f;
-        pluto->setMaterialFlag(EMF_LIGHTING, true);
-		pluto->setParent(sun);
-		pluto->setScale(vector3df(plutoSize, plutoSize, plutoSize));
-		pluto->setPosition(vector3df(2 * pAU + sunSize, 0, 0));
-        pluto->setMaterialTexture( 0, driver->getTexture("../textures/pluto.bmp") );
+		const float marsSize = sunSize / (208.0f * sunSize);
+        mars->setMaterialFlag(EMF_LIGHTING, true);
+		mars->setParent(sun);
+		mars->setScale(vector3df(marsSize, marsSize, marsSize));
+		mars->setPosition(vector3df(1.52f * AU, 0, 0));
+        mars->setMaterialTexture( 0, driver->getTexture("../textures/mars.bmp") );
+		ISceneNodeAnimator* orbit = smgr->createFlyCircleAnimator(vector3df(0.f, 1, 0.f),1.52f * AU, year / (f32) 1.8f, vector3df(0.f, 1, 0.f), 100.0f, 0.0f);
+		mars->addAnimator(orbit);
+    }
+
+	IMeshSceneNode* jupiter = smgr->addSphereSceneNode(sunSize, 20, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
+	if (jupiter)
+    {
+		const float jupiterSize = sunSize / (10.0f * sunSize);
+        jupiter->setMaterialFlag(EMF_LIGHTING, true);
+		jupiter->setParent(sun);
+		jupiter->setScale(vector3df(jupiterSize, jupiterSize, jupiterSize));
+		jupiter->setPosition(vector3df(5.2f * AU, 0, 0));
+        jupiter->setMaterialTexture( 0, driver->getTexture("../textures/Jupiter.bmp") );
+		ISceneNodeAnimator* orbit = smgr->createFlyCircleAnimator(vector3df(0.f, 1, 0.f),5.2f * AU, year / (f32) 12.0f, vector3df(0.f, 1, 0.f), 100.0f, 0.0f);
+		jupiter->addAnimator(orbit);
+    }
+
+	IMeshSceneNode* saturn = smgr->addSphereSceneNode(sunSize, 10, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
+	if (saturn)
+    {
+		const float saturnSize = sunSize / (11.4f * sunSize);
+        saturn->setMaterialFlag(EMF_LIGHTING, true);
+		saturn->setParent(sun);
+		saturn->setScale(vector3df(saturnSize, saturnSize, saturnSize));
+		saturn->setPosition(vector3df(9.5f * AU, 0, 0));
+        saturn->setMaterialTexture( 0, driver->getTexture("../textures/saturn.bmp") );
+		ISceneNodeAnimator* orbit = smgr->createFlyCircleAnimator(vector3df(0.f, 1, 0.f),9.5f * AU, year / (f32) 12.0f, vector3df(0.f, 1, 0.f), 100.0f, 0.0f);
+		saturn->addAnimator(orbit);
+    }
+
+	IMeshSceneNode* uranus = smgr->addSphereSceneNode(sunSize, 10, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
+	if (uranus)
+    {
+		const float uranusSize = sunSize / (26.8f * sunSize);
+        uranus->setMaterialFlag(EMF_LIGHTING, true);
+		uranus->setParent(sun);
+		uranus->setScale(vector3df(uranusSize, uranusSize, uranusSize));
+		uranus->setPosition(vector3df(19.2f * AU, 0, 0));
+        uranus->setMaterialTexture( 0, driver->getTexture("../textures/uran.bmp") );
+		ISceneNodeAnimator* orbit = smgr->createFlyCircleAnimator(vector3df(0.f, 1, 0.f),19.2f * AU, year / (f32) 84.0f, vector3df(0.f, 1, 0.f), 100.0f, 0.0f);
+		uranus->addAnimator(orbit);
+    }
+
+	IMeshSceneNode* neptune = smgr->addSphereSceneNode(sunSize, 5, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
+	if (neptune)
+    {
+		const float neptuneSize = sunSize / (27.7f * sunSize);
+        neptune->setMaterialFlag(EMF_LIGHTING, true);
+		neptune->setParent(sun);
+		neptune->setScale(vector3df(neptuneSize, neptuneSize, neptuneSize));
+		neptune->setPosition(vector3df(30.0f * AU, 0, 0));
+        neptune->setMaterialTexture( 0, driver->getTexture("../textures/neptun.bmp") );
+		ISceneNodeAnimator* orbit = smgr->createFlyCircleAnimator(vector3df(0.f, 1, 0.f), 30.0f * AU, year / (f32) 165.0f, vector3df(0.f, 1, 0.f), 100.0f, 0.0f);
+		neptune->addAnimator(orbit);
+    }
+
+	IMesh* mesh = smgr->getMesh("../objects/asteroid.ply");
+    if (!mesh)
+    {
+        device->drop();
+        return 1;
+    }
+	
+	IMeshSceneNode* asteroid = smgr->addMeshSceneNode(mesh);
+	if (asteroid)
+    {
+		const float asteroidSize = sunSize / (5.0f * sunSize);
+		const float pAU = 6.0f;
+        asteroid->setMaterialFlag(EMF_LIGHTING, true);
+		asteroid->setMaterialFlag(EMF_GOURAUD_SHADING, true);
+		asteroid->setScale(vector3df(asteroidSize, asteroidSize, asteroidSize));
+		asteroid->setPosition(vector3df(2 * pAU + sunSize, 0, 0));
+        asteroid->setMaterialTexture( 0, driver->getTexture("../textures/asteroid.BMP") );
+    }
+
+	IMesh* star = smgr->getMesh("../objects/deathstar.3ds");
+    if (!mesh)
+    {
+        device->drop();
+        return 1;
+    }
+	
+	IMeshSceneNode* dstar = smgr->addMeshSceneNode(star);
+	if (dstar)
+    {
+		const float asteroidSize = sunSize / (5.0f * sunSize);
+		const float pAU = 6.0f;
+        dstar->setMaterialFlag(EMF_LIGHTING, true);
+		dstar->setMaterialFlag(EMF_GOURAUD_SHADING, true);
+		dstar->setScale(vector3df(asteroidSize, asteroidSize, asteroidSize));
+		dstar->setPosition(vector3df(2 * pAU + sunSize, 0, 0));
+		ISceneNodeAnimator* orbit = smgr->createRotationAnimator(vector3df(0.f, 0.2f, 0.f));
+		dstar->addAnimator(orbit);
+        dstar->setMaterialTexture( 0, driver->getTexture("../textures/ds.BMP") );
     }
 
 	smgr->addCameraSceneNodeFPS(0, 100.0F, 0.005F, -1, 0, 0, false, 0.0F, false, true);
 
-	u32 then = device->getTimer()->getTime();
+	//u32 then = device->getTimer()->getTime();
     const f32 MOVEMENT_SPEED = (f32) 0.000001f;
 	device->getCursorControl()->setVisible(false);
 
@@ -108,34 +224,39 @@ int main()
 	while(device->run())
     {
 		// Work out a frame delta time.
-        const u32 now = device->getTimer()->getTime();
-        const f32 frameDeltaTime = (f32) (now - then) / (f32) 1000.0f; // Time in seconds
-        then = now;
+        //const u32 now = device->getTimer()->getTime();
+        //const f32 frameDeltaTime = (f32) (now - then) / (f32) 1000.0f; // Time in seconds
+        //then = now;
 
-		core::vector3df sunPosition = sun->getPosition();
+		vector3df sunPosition = sun->getPosition();
+		vector3df astPosition;
+		if(asteroid)
+			astPosition = asteroid->getPosition();
+		if(abs(astPosition.Z - sunPosition.Z) < sunSize)
+		{
+			asteroid->remove();
+			asteroid = NULL;
+		}
 
 		//Move camera
-		if(receiver.IsKeyDown(irr::KEY_UP))
-            sunPosition.Y += MOVEMENT_SPEED * frameDeltaTime;
-		else if(receiver.IsKeyDown(irr::KEY_DOWN))
-            sunPosition.Y -= MOVEMENT_SPEED * frameDeltaTime;
+		//if(receiver.IsKeyDown(irr::KEY_UP))
+  //          sunPosition.Y += MOVEMENT_SPEED * frameDeltaTime;
+		//else if(receiver.IsKeyDown(irr::KEY_DOWN))
+  //          sunPosition.Y -= MOVEMENT_SPEED * frameDeltaTime;
 
-		if(receiver.IsKeyDown(irr::KEY_LEFT))
-            sunPosition.X -= MOVEMENT_SPEED * frameDeltaTime;
-		else if(receiver.IsKeyDown(irr::KEY_RIGHT))
-            sunPosition.X += (f32) (MOVEMENT_SPEED * frameDeltaTime);
+		//if(receiver.IsKeyDown(irr::KEY_LEFT))
+  //          sunPosition.X -= MOVEMENT_SPEED * frameDeltaTime;
+		//else if(receiver.IsKeyDown(irr::KEY_RIGHT))
+  //          sunPosition.X += (f32) (MOVEMENT_SPEED * frameDeltaTime);
+
 
 		//Rotations
-		t += (float) 0.1;
 		sun->setPosition(sunPosition);
-		
-		//sun->setRotation(vector3df(0, t, 0));
-		//jupiter->setRotation(vector3df(0, -t * (float) 5, 0));
+		if(asteroid) asteroid->setPosition(vector3df(astPosition.X - (f32) 0.01, astPosition.Y, astPosition.Z + (f32) 0.01));
 
 		//render everything
 		driver->beginScene(true, true, SColor(255,0,0,0));
         smgr->drawAll();
-        guienv->drawAll();
         driver->endScene();
     }
 
