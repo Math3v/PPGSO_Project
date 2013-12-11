@@ -19,27 +19,12 @@ using namespace gui;
 #pragma comment(linker, "/subsystem:windows /ENTRY:mainCRTStartup")
 #endif
 
-float t = 0.0;
+const float sunSize = (float) 10.0;
+const float AU = (float) sunSize + (float) 10.0;
+const f32 year = (f32) 0.00001;
 
-int main()
+bool AddObjects(IrrlichtDevice *device, IVideoDriver* driver, ISceneManager* smgr )
 {
-	MyEventReceiver receiver;
-	#ifdef FULLSCREEN
-		IrrlichtDevice *device = createDevice( video::EDT_OPENGL, dimension2d<u32>(1366, 768), 32, true, false, false, 0);
-	#else
-		IrrlichtDevice *device = createDevice( video::EDT_OPENGL, dimension2d<u32>(743, 743), 16, false, false, false, 0);
-	#endif
-
-    if (!device)
-        return 1;
-
-	IVideoDriver* driver = device->getVideoDriver();
-    ISceneManager* smgr = device->getSceneManager();
-
-	const float sunSize = (float) 10.0;
-	const float AU = (float) sunSize + (float) 10.0;
-	const f32 year = (f32) 0.00001;
-
 	IMeshSceneNode* sun = smgr->addSphereSceneNode(sunSize, 50, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
 	if (sun)
     {
@@ -171,32 +156,15 @@ int main()
 		neptune->addAnimator(orbit);
     }
 
-	IMesh* mesh = smgr->getMesh("../objects/asteroid.ply");
-    if (!mesh)
-    {
-        device->drop();
-        return 1;
-    }
-	
-	IMeshSceneNode* asteroid = smgr->addMeshSceneNode(mesh);
-	if (asteroid)
-    {
-		const float asteroidSize = sunSize / (5.0f * sunSize);
-		const float pAU = 6.0f;
-        asteroid->setMaterialFlag(EMF_LIGHTING, true);
-		asteroid->setMaterialFlag(EMF_GOURAUD_SHADING, true);
-		asteroid->setScale(vector3df(asteroidSize, asteroidSize, asteroidSize));
-		asteroid->setPosition(vector3df(2 * pAU + sunSize, 0, 0));
-        asteroid->setMaterialTexture( 0, driver->getTexture("../textures/asteroid.BMP") );
-    }
-
 	IMesh* star = smgr->getMesh("../objects/deathstar.3ds");
-    if (!mesh)
+	IMesh* mesh = smgr->getMesh("../objects/asteroid.ply");
+    if (!star || !mesh)
     {
         device->drop();
-        return 1;
+        return false;
     }
 	
+	IMeshSceneNode* asteroid = smgr->addMeshSceneNode(mesh);	
 	IMeshSceneNode* dstar = smgr->addMeshSceneNode(star);
 	if (dstar)
     {
@@ -206,16 +174,48 @@ int main()
 		dstar->setMaterialFlag(EMF_GOURAUD_SHADING, true);
 		dstar->setScale(vector3df(asteroidSize, asteroidSize, asteroidSize));
 		dstar->setPosition(vector3df(2 * pAU + sunSize, 0, 0));
+		//ISceneNodeAnimator* crash = smgr->createCollisionResponseAnimator(0, asteroid, vector3df(30 ,60 ,30), vector3df(0, -10.0f, 0), vector3df(0,0,0), 0.0005);
 		ISceneNodeAnimator* orbit = smgr->createRotationAnimator(vector3df(0.f, 0.2f, 0.f));
 		dstar->addAnimator(orbit);
         dstar->setMaterialTexture( 0, driver->getTexture("../textures/ds.BMP") );
     }
 
-	smgr->addCameraSceneNodeFPS(0, 100.0F, 0.005F, -1, 0, 0, false, 0.0F, false, true);
+	if (asteroid)
+    {
+		vector3df dstarPos = dstar->getPosition();
+		dstarPos.Y += (f32) 2.5;
+		const float asteroidSize = sunSize / (5.0f * sunSize);
+        asteroid->setMaterialFlag(EMF_LIGHTING, true);
+		asteroid->setMaterialFlag(EMF_GOURAUD_SHADING, true);
+		asteroid->setScale(vector3df(asteroidSize, asteroidSize, asteroidSize));
+		asteroid->setPosition(vector3df(10.0f * AU, 0, 0));
+        asteroid->setMaterialTexture( 0, driver->getTexture("../textures/asteroid.BMP") );
+		ISceneNodeAnimator* orbit = smgr->createFlyStraightAnimator(asteroid->getPosition(), dstarPos, 20 * 1000, true, false);
+		asteroid->addAnimator(orbit);
+    }
 
-	//u32 then = device->getTimer()->getTime();
-    const f32 MOVEMENT_SPEED = (f32) 0.000001f;
+	return true;
+}
+
+int main()
+{
+	MyEventReceiver receiver;
+	#ifdef FULLSCREEN
+		IrrlichtDevice *device = createDevice( video::EDT_OPENGL, dimension2d<u32>(1366, 768), 32, true, false, false, 0);
+	#else
+		IrrlichtDevice *device = createDevice( video::EDT_OPENGL, dimension2d<u32>(743, 743), 16, false, false, false, 0);
+	#endif
+
+    if (!device)
+        return 1;
+
+	IVideoDriver* driver = device->getVideoDriver();
+    ISceneManager* smgr = device->getSceneManager();
+
+	smgr->addCameraSceneNodeFPS(0, 100.0F, 0.005F, -1, 0, 0, false, 0.0F, false, true);
 	device->getCursorControl()->setVisible(false);
+
+	if(!AddObjects(device, driver, smgr)) return 1;
 
 	CMyLightManager * myLightManager = new CMyLightManager(smgr);
     smgr->setLightManager(0); // This is the default: we won't do light management until told to do it.
@@ -223,37 +223,6 @@ int main()
 
 	while(device->run())
     {
-		// Work out a frame delta time.
-        //const u32 now = device->getTimer()->getTime();
-        //const f32 frameDeltaTime = (f32) (now - then) / (f32) 1000.0f; // Time in seconds
-        //then = now;
-
-		vector3df sunPosition = sun->getPosition();
-		vector3df astPosition;
-		if(asteroid)
-			astPosition = asteroid->getPosition();
-		if(abs(astPosition.Z - sunPosition.Z) < sunSize)
-		{
-			asteroid->remove();
-			asteroid = NULL;
-		}
-
-		//Move camera
-		//if(receiver.IsKeyDown(irr::KEY_UP))
-  //          sunPosition.Y += MOVEMENT_SPEED * frameDeltaTime;
-		//else if(receiver.IsKeyDown(irr::KEY_DOWN))
-  //          sunPosition.Y -= MOVEMENT_SPEED * frameDeltaTime;
-
-		//if(receiver.IsKeyDown(irr::KEY_LEFT))
-  //          sunPosition.X -= MOVEMENT_SPEED * frameDeltaTime;
-		//else if(receiver.IsKeyDown(irr::KEY_RIGHT))
-  //          sunPosition.X += (f32) (MOVEMENT_SPEED * frameDeltaTime);
-
-
-		//Rotations
-		sun->setPosition(sunPosition);
-		if(asteroid) asteroid->setPosition(vector3df(astPosition.X - (f32) 0.01, astPosition.Y, astPosition.Z + (f32) 0.01));
-
 		//render everything
 		driver->beginScene(true, true, SColor(255,0,0,0));
         smgr->drawAll();
