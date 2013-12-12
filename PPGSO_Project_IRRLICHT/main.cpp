@@ -13,6 +13,7 @@ using namespace io;
 using namespace gui;
 
 #define FULLSCREEN
+#define ANIMATION
 
 #ifdef _IRR_WINDOWS_
 #pragma comment(lib, "../Irrlicht.lib")
@@ -22,6 +23,10 @@ using namespace gui;
 const float sunSize = (float) 10.0;
 const float AU = (float) sunSize + (float) 10.0;
 const f32 year = (f32) 0.00001;
+
+array<vector3df> points;
+ICameraSceneNode* camera;
+IMeshSceneNode* sun;
 
 vector3df getPosition(vector3df position)
 {
@@ -34,9 +39,9 @@ vector3df getPosition(vector3df position)
 	return retVal;
 }
 
-bool AddObjects(IrrlichtDevice *device, IVideoDriver* driver, ISceneManager* smgr, ICameraSceneNode* camera )
+bool AddObjects(IrrlichtDevice *device, IVideoDriver* driver, ISceneManager* smgr)
 {
-	IMeshSceneNode* sun = smgr->addSphereSceneNode(sunSize, 50, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
+	sun = smgr->addSphereSceneNode(sunSize, 50, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
 	if (sun)
     {
 		sun->setPosition(vector3df(0,0,30));
@@ -253,7 +258,7 @@ bool AddObjects(IrrlichtDevice *device, IVideoDriver* driver, ISceneManager* smg
 	//ISceneNodeAnimator* fa = smgr->createFlyStraightAnimator(sun->getPosition(), photometer->getPosition(), 20 * 1000, true, true);
 	//node->addAnimator(fa);
 
-	array<vector3df> points;
+	
 	points.push_back(getPosition(mercury->getPosition()));
 	//points.push_back(getPosition(sun->getPosition()));
 	points.push_back(getPosition(venus->getPosition()));
@@ -265,7 +270,10 @@ bool AddObjects(IrrlichtDevice *device, IVideoDriver* driver, ISceneManager* smg
 
 	ISceneNodeAnimator* a = smgr->createFollowSplineAnimator(15 * 1000, points, (f32) 0.5, (f32) 0.5, true, false);
 	//ISceneNodeAnimator* a= smgr->createFlyStraightAnimator(sun->getPosition(), uranus->getPosition(), 30 * 1000, false, false);
-	camera->addAnimator(a);
+	#ifdef ANIMATION
+		camera->addAnimator(a);
+		camera->setTarget(sun->getPosition());
+	#endif
 
 
 	return true;
@@ -286,10 +294,10 @@ int main()
 	IVideoDriver* driver = device->getVideoDriver();
     ISceneManager* smgr = device->getSceneManager();
 
-	ICameraSceneNode* camera = smgr->addCameraSceneNodeFPS(0, 100.0F, 0.005F, -1, 0, 0, false, 0.0F, false, true);
+	camera = smgr->addCameraSceneNodeFPS(0, 100.0F, 0.005F, -1, 0, 0, false, 0.0F, false, true);
 	device->getCursorControl()->setVisible(false);
 
-	if(!AddObjects(device, driver, smgr, camera)) return 1;
+	if(!AddObjects(device, driver, smgr)) return 1;
 
 	CMyLightManager * myLightManager = new CMyLightManager(smgr);
     smgr->setLightManager(0); // This is the default: we won't do light management until told to do it.
@@ -297,6 +305,10 @@ int main()
 
 	while(device->run())
     {
+		#ifdef ANIMATION
+			camera->setTarget(sun->getPosition());
+		#endif
+
 		//render everything
 		driver->beginScene(true, true, SColor(255,0,0,0));
         smgr->drawAll();
