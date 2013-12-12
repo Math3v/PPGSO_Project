@@ -23,7 +23,18 @@ const float sunSize = (float) 10.0;
 const float AU = (float) sunSize + (float) 10.0;
 const f32 year = (f32) 0.00001;
 
-bool AddObjects(IrrlichtDevice *device, IVideoDriver* driver, ISceneManager* smgr )
+vector3df getPosition(vector3df position)
+{
+	vector3df retVal;
+
+	retVal.X = position.X;
+	retVal.Y = 0;
+	retVal.Z = 0;
+
+	return retVal;
+}
+
+bool AddObjects(IrrlichtDevice *device, IVideoDriver* driver, ISceneManager* smgr, ICameraSceneNode* camera )
 {
 	IMeshSceneNode* sun = smgr->addSphereSceneNode(sunSize, 50, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
 	if (sun)
@@ -39,15 +50,14 @@ bool AddObjects(IrrlichtDevice *device, IVideoDriver* driver, ISceneManager* smg
 	IMeshSceneNode* mercury = smgr->addSphereSceneNode(sunSize, 5, NULL, -1, vector3df(0.0f, 0.0f, 0.0f), vector3df(0.0f, 0.0f, 0.0f), vector3df(1.0f, 1.0f, 1.0f));
 	if (mercury)
     {
-		//const float mercurySize = sunSize / (277.0f * sunSize);
-		const float mercurySize = sunSize / (11.0f * sunSize);
+		const float mercurySize = sunSize / (277.0f * sunSize);
+		//const float mercurySize = sunSize / (1.0f * sunSize);
         mercury->setMaterialFlag(EMF_LIGHTING, true);
 		mercury->setParent(sun);
 		mercury->setScale(vector3df(mercurySize, mercurySize, mercurySize));
-		//mercury->setPosition(vector3df(0.38f * AU, 0, 0));
-		mercury->setPosition(vector3df(0.78f * AU, 0, 0));
-        mercury->setMaterialTexture( 0, driver->getTexture("../textures/sun_texture_big.bmp") );
-		ISceneNodeAnimator* orbit = smgr->createFlyCircleAnimator(vector3df(0.f, 1, 0.f),0.38f * AU, year * (f32) 2.1f, vector3df(0.f, 1, 0.f), 100.0f, 0.0f);
+		mercury->setPosition(vector3df(0.58f * AU, 0, 0));
+        mercury->setMaterialTexture( 0, driver->getTexture("../textures/mercurymap.jpg") );
+		ISceneNodeAnimator* orbit = smgr->createFlyCircleAnimator(vector3df(0.f, 1, 0.f),0.58f * AU, year * (f32) 2.1f, vector3df(0.f, 1, 0.f), 100.0f, 0.0f);
 		mercury->addAnimator(orbit);
     }
 
@@ -156,43 +166,107 @@ bool AddObjects(IrrlichtDevice *device, IVideoDriver* driver, ISceneManager* smg
 		neptune->addAnimator(orbit);
     }
 
-	IMesh* star = smgr->getMesh("../objects/deathstar.3ds");
+	IMesh* ufom = smgr->getMesh("../objects/ufo.obj");
 	IMesh* mesh = smgr->getMesh("../objects/asteroid.ply");
-    if (!star || !mesh)
+	IMesh* photometerm = smgr->getMesh("../objects/photometer.obj");
+	IMesh* voyagerm = smgr->getMesh("../objects/Voyager_17.obj");
+    if (!mesh || !ufom || !photometerm || !voyagerm)
     {
         device->drop();
         return false;
     }
 	
 	IMeshSceneNode* asteroid = smgr->addMeshSceneNode(mesh);	
-	IMeshSceneNode* dstar = smgr->addMeshSceneNode(star);
-	if (dstar)
+	IMeshSceneNode* ufo = smgr->addMeshSceneNode(ufom);
+	IMeshSceneNode* photometer = smgr->addMeshSceneNode(photometerm);
+	IMeshSceneNode* voyager = smgr->addMeshSceneNode(voyagerm);
+	if (ufo)
+    {
+		const float asteroidSize = 0.03f;
+		const float pAU = 2.0f;
+		ufo->setParent(jupiter);
+        ufo->setMaterialFlag(EMF_LIGHTING, true);
+		ufo->setMaterialFlag(EMF_GOURAUD_SHADING, true);
+		ufo->setScale(vector3df(asteroidSize, asteroidSize, asteroidSize));
+		ufo->setPosition(vector3df(2 * pAU + sunSize, 0, 0));
+		ISceneNodeAnimator* orbit = smgr->createRotationAnimator(vector3df(0.f, 0.2f, 0.f));
+		ufo->addAnimator(orbit);
+    }
+
+	if (photometer)
     {
 		const float asteroidSize = sunSize / (5.0f * sunSize);
 		const float pAU = 6.0f;
-        dstar->setMaterialFlag(EMF_LIGHTING, true);
-		dstar->setMaterialFlag(EMF_GOURAUD_SHADING, true);
-		dstar->setScale(vector3df(asteroidSize, asteroidSize, asteroidSize));
-		dstar->setPosition(vector3df(2 * pAU + sunSize, 0, 0));
-		//ISceneNodeAnimator* crash = smgr->createCollisionResponseAnimator(0, asteroid, vector3df(30 ,60 ,30), vector3df(0, -10.0f, 0), vector3df(0,0,0), 0.0005);
+        photometer->setMaterialFlag(EMF_LIGHTING, true);
+		photometer->setMaterialFlag(EMF_GOURAUD_SHADING, true);
+		photometer->setScale(vector3df(asteroidSize, asteroidSize, asteroidSize));
+		photometer->setPosition(vector3df(2 * pAU + sunSize, 0, 0));
 		ISceneNodeAnimator* orbit = smgr->createRotationAnimator(vector3df(0.f, 0.2f, 0.f));
-		dstar->addAnimator(orbit);
-        dstar->setMaterialTexture( 0, driver->getTexture("../textures/ds.BMP") );
+		photometer->addAnimator(orbit);
     }
 
 	if (asteroid)
     {
-		vector3df dstarPos = dstar->getPosition();
-		dstarPos.Y += (f32) 2.5;
+		vector3df dstarPos = photometer->getPosition();
+		dstarPos.Y += (f32) 1.0;
 		const float asteroidSize = sunSize / (5.0f * sunSize);
         asteroid->setMaterialFlag(EMF_LIGHTING, true);
 		asteroid->setMaterialFlag(EMF_GOURAUD_SHADING, true);
 		asteroid->setScale(vector3df(asteroidSize, asteroidSize, asteroidSize));
-		asteroid->setPosition(vector3df(10.0f * AU, 0, 0));
+		asteroid->setPosition(vector3df(5.0f * AU, 0, 0));
         asteroid->setMaterialTexture( 0, driver->getTexture("../textures/asteroid.BMP") );
-		ISceneNodeAnimator* orbit = smgr->createFlyStraightAnimator(asteroid->getPosition(), dstarPos, 20 * 1000, true, false);
+		ISceneNodeAnimator* orbit = smgr->createFlyStraightAnimator(asteroid->getPosition(), dstarPos, 10 * 1000, true, false);
 		asteroid->addAnimator(orbit);
     }
+
+	if (voyager)
+    {
+		const float asteroidSize = sunSize / (5.0f * sunSize);
+		const float pAU = 2.0f;
+		voyager->setParent(sun);
+        voyager->setMaterialFlag(EMF_LIGHTING, true);
+		voyager->setMaterialFlag(EMF_GOURAUD_SHADING, true);
+		voyager->setScale(vector3df(asteroidSize, asteroidSize, asteroidSize));
+		voyager->setPosition(vector3df(2 * pAU + sunSize, 0, 0));
+		ISceneNodeAnimator* orbit = smgr->createRotationAnimator(vector3df(0.2f, 0.2f, 0.01f));
+		voyager->addAnimator(orbit);
+    }
+
+	driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, false);
+
+	smgr->addSkyBoxSceneNode(
+		driver->getTexture("../textures/deepspace.jpg"),
+		driver->getTexture("../textures/deepspace.jpg"),
+		driver->getTexture("../textures/deepspace.jpg"),
+		driver->getTexture("../textures/deepspace.jpg"),
+		driver->getTexture("../textures/deepspace.jpg"),
+		driver->getTexture("../textures/deepspace.jpg"));
+
+	driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, true);
+
+	//ISceneNode* node = 0;
+	//node = smgr->addBillboardSceneNode(0,
+	//dimension2d<f32>(10,10), photometer->getPosition());
+	//node->setMaterialFlag(video::EMF_LIGHTING, false);
+	//node->setMaterialTexture(0, device->getVideoDriver()->getTexture("../../media/fireball.bmp"));
+	//node->setMaterialType(video::EMT_TRANSPARENT_ADD_COLOR);
+	//ISceneNodeAnimator* fa = smgr->createFlyStraightAnimator(sun->getPosition(), photometer->getPosition(), 20 * 1000, true, true);
+	//node->addAnimator(fa);
+
+	array<vector3df> points;
+	points.push_back(getPosition(mercury->getPosition()));
+	//points.push_back(getPosition(sun->getPosition()));
+	points.push_back(getPosition(venus->getPosition()));
+	//points.push_back(getPosition(sun->getPosition()));
+	points.push_back(getPosition(earth->getPosition()));
+	//points.push_back(getPosition(sun->getPosition()));
+	points.push_back(getPosition(uranus->getPosition()));
+	//points.push_back(getPosition(sun->getPosition()));
+
+	ISceneNodeAnimator* a = smgr->createFollowSplineAnimator(15 * 1000, points, (f32) 0.5, (f32) 0.5, true, false);
+	//ISceneNodeAnimator* a= smgr->createFlyStraightAnimator(sun->getPosition(), uranus->getPosition(), 30 * 1000, false, false);
+	camera->addAnimator(a);
+
 
 	return true;
 }
@@ -212,10 +286,10 @@ int main()
 	IVideoDriver* driver = device->getVideoDriver();
     ISceneManager* smgr = device->getSceneManager();
 
-	smgr->addCameraSceneNodeFPS(0, 100.0F, 0.005F, -1, 0, 0, false, 0.0F, false, true);
+	ICameraSceneNode* camera = smgr->addCameraSceneNodeFPS(0, 100.0F, 0.005F, -1, 0, 0, false, 0.0F, false, true);
 	device->getCursorControl()->setVisible(false);
 
-	if(!AddObjects(device, driver, smgr)) return 1;
+	if(!AddObjects(device, driver, smgr, camera)) return 1;
 
 	CMyLightManager * myLightManager = new CMyLightManager(smgr);
     smgr->setLightManager(0); // This is the default: we won't do light management until told to do it.
