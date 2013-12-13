@@ -31,7 +31,7 @@ IMeshSceneNode* sun;
 vector3df getPosition(vector3df position)
 {
 	vector3df retVal;
-
+	
 	retVal.X = position.X;
 	retVal.Y = 0;
 	retVal.Z = 0;
@@ -187,9 +187,9 @@ bool AddObjects(IrrlichtDevice *device, IVideoDriver* driver, ISceneManager* smg
 	IMeshSceneNode* voyager = smgr->addMeshSceneNode(voyagerm);
 	if (ufo)
     {
-		const float asteroidSize = 0.03f;
+		const float asteroidSize = 0.003f;
 		const float pAU = 2.0f;
-		ufo->setParent(jupiter);
+		//ufo->setParent(jupiter);
         ufo->setMaterialFlag(EMF_LIGHTING, true);
 		ufo->setMaterialFlag(EMF_GOURAUD_SHADING, true);
 		ufo->setScale(vector3df(asteroidSize, asteroidSize, asteroidSize));
@@ -213,7 +213,7 @@ bool AddObjects(IrrlichtDevice *device, IVideoDriver* driver, ISceneManager* smg
 	if (asteroid)
     {
 		vector3df dstarPos = photometer->getPosition();
-		dstarPos.Y += (f32) 1.0;
+		dstarPos.Y += (f32) 1.5;
 		const float asteroidSize = sunSize / (5.0f * sunSize);
         asteroid->setMaterialFlag(EMF_LIGHTING, true);
 		asteroid->setMaterialFlag(EMF_GOURAUD_SHADING, true);
@@ -249,18 +249,19 @@ bool AddObjects(IrrlichtDevice *device, IVideoDriver* driver, ISceneManager* smg
 
 	driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, true);
 
-	//ISceneNode* node = 0;
-	//node = smgr->addBillboardSceneNode(0,
-	//dimension2d<f32>(10,10), photometer->getPosition());
-	//node->setMaterialFlag(video::EMF_LIGHTING, false);
-	//node->setMaterialTexture(0, device->getVideoDriver()->getTexture("../../media/fireball.bmp"));
-	//node->setMaterialType(video::EMT_TRANSPARENT_ADD_COLOR);
-	//ISceneNodeAnimator* fa = smgr->createFlyStraightAnimator(sun->getPosition(), photometer->getPosition(), 20 * 1000, true, true);
-	//node->addAnimator(fa);
+	ISceneNode* node = 0;
+	vector3df photometerPosition = photometer->getPosition();
+	photometerPosition.Y += 4.0f;
+	node = smgr->addBillboardSceneNode(0, dimension2d<f32>(5,5), photometerPosition);
+	node->setMaterialFlag(video::EMF_LIGHTING, false);
+	node->setMaterialTexture(0, device->getVideoDriver()->getTexture("../../media/fireball.bmp"));
+	node->setMaterialType(video::EMT_TRANSPARENT_ADD_COLOR);
+	ISceneNodeAnimator* fa = smgr->createFlyStraightAnimator(sun->getPosition(), photometerPosition, 20 * 1000, true, true);
+	node->addAnimator(fa);
 
 	
 	points.push_back(getPosition(mercury->getPosition()));
-	//points.push_back(getPosition(sun->getPosition()));
+	//points.push_back(getPosition(sun->getPosition()));&
 	points.push_back(getPosition(venus->getPosition()));
 	//points.push_back(getPosition(sun->getPosition()));
 	points.push_back(getPosition(earth->getPosition()));
@@ -272,7 +273,6 @@ bool AddObjects(IrrlichtDevice *device, IVideoDriver* driver, ISceneManager* smg
 	//ISceneNodeAnimator* a= smgr->createFlyStraightAnimator(sun->getPosition(), uranus->getPosition(), 30 * 1000, false, false);
 	#ifdef ANIMATION
 		camera->addAnimator(a);
-		camera->setTarget(sun->getPosition());
 	#endif
 
 
@@ -294,7 +294,7 @@ int main()
 	IVideoDriver* driver = device->getVideoDriver();
     ISceneManager* smgr = device->getSceneManager();
 
-	camera = smgr->addCameraSceneNodeFPS(0, 100.0F, 0.005F, -1, 0, 0, false, 0.0F, false, true);
+	camera = smgr->addCameraSceneNodeFPS(0, 100.0F, 0.01F, -1, 0, 0, false, 0.0F, false, true);
 	device->getCursorControl()->setVisible(false);
 
 	if(!AddObjects(device, driver, smgr)) return 1;
